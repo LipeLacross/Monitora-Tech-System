@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Monitoramento de Vazão</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    <script src="{{ url_for('static', filename='chartPrincipalVazao.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='chartLiveVazao.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='chartLiveAltura.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='sendData.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='downloadData.js') }}" defer></script>
+</head>
+<body>
+<h2>Sistema de Monitoramento de Vazão</h2>
+
+<!-- Gráfico Principal de Vazão com Downsampling -->
+<section>
+    <h2>Gráfico de Vazão</h2>
+    <p>Este gráfico exibe os dados de vazão com downsampling para melhorar a visualização e o desempenho.</p>
+    <p><strong>Observação:</strong> Cada ponto no gráfico representa uma média dos dados coletados, conforme o filtro selecionado:</p>
+    <ul>
+        <li><strong>Dia:</strong> Média de vazão a cada hora.</li>
+        <li><strong>Semana:</strong> Média de vazão a cada 12 horas.</li>
+        <li><strong>Mês:</strong> Média de vazão por dia.</li>
+    </ul>
+    <canvas id="leiturasChart"></canvas>
+</section>
+
+<!-- Seção de Filtro de Dados -->
+<section class="filter-container">
+    <h3>Filtrar Dados</h3>
+    <p>Escolha um tipo de filtro para visualizar os dados de vazão com base no período desejado.</p>
+
+    <label for="filter">Escolha o Período:</label>
+    <select id="filter" aria-label="Escolha o período de dados">
+        <option value="dia">Dia (1 ponto por hora)</option>
+        <option value="semana">Semana (1 ponto a cada 12 horas)</option>
+        <option value="mes">Mês (1 ponto por dia)</option>
+    </select>
+
+    <!-- Filtro específico por dia -->
+    <div id="filterDia" class="filter-group">
+        <label for="date">Selecione a Data:</label>
+        <input type="date" id="date" aria-label="Data para filtro de dia">
+    </div>
+
+    <!-- Filtro específico por semana -->
+    <div id="filterSemana" class="filter-group">
+        <label for="startDate">Data de Início:</label>
+        <input type="date" id="startDate" aria-label="Data de início para filtro de semana">
+        <label for="endDate">Data de Fim:</label>
+        <input type="date" id="endDate" aria-label="Data de fim para filtro de semana">
+    </div>
+
+    <!-- Filtro específico por mês -->
+    <div id="filterMes" class="filter-group">
+        <label for="month">Mês:</label>
+        <input type="number" id="month" min="1" max="12" placeholder="1-12" aria-label="Mês para filtro de mês">
+        <label for="year">Ano:</label>
+        <input type="number" id="year" min="2000" max="2100" placeholder="ex: 2024" aria-label="Ano para filtro de mês">
+    </div>
+
+    <div>
+        <input type="checkbox" id="toggleSafetyLines" aria-label="Exibir linhas de segurança">
+        <label for="toggleSafetyLines">Exibir Linhas de Segurança no Gráfico</label>
+        <h3>Linhas de Segurança</h3>
+        <ul>
+            <li><strong>Limite Inferior de Segurança (Azul):</strong> O nível mínimo aceitável.</li>
+            <li><strong>Limite Superior de Segurança (Verde):</strong> O nível máximo aceitável.</li>
+            <li><strong>Limite de Transbordamento (Vermelho):</strong> Nível de alerta de transbordamento.</li>
+        </ul>
+    </div>
+
+    <button id="applyFilter" aria-label="Aplicar filtros">Aplicar Filtro</button>
+    <button id="removeFilter" aria-label="Remover filtros e voltar ao padrão">Remover Filtro e Voltar ao Padrão</button>
+</section>
+
+<!-- Gráfico Secundário de vazao ao Vivo -->
+<section>
+    <h2>Gráfico ao Vivo da Vazão ou Minuto Específico</h2>
+    <canvas id="liveChart"></canvas>
+    <p>Este gráfico mostra a vazão em tempo real com dados atualizados a cada minuto.</p>
+</section>
+
+<!-- Filtro por minuto e tabela de leituras de vazao ao vivo do gráfico ao vivo -->
+<section>
+    <h2>Filtrar por Minuto Específico</h2>
+    <p>Selecione um minuto específico para visualizar os dados correspondentes. O gráfico e a tabela serão atualizados com os dados desse minuto.</p>
+    <input type="datetime-local" id="specificMinuteInput" aria-label="Selecionar minuto específico">
+    <button id="specificMinuteBtn" aria-label="Aplicar filtro de minuto">Aplicar Filtro de Minuto</button>
+    <button id="removeMinuteFilter" aria-label="Remover filtro de minuto">Remover Filtro de Minuto</button>
+</section>
+
+<!-- Opção para exibir linhas de segurança -->
+<section>
+    <h3>Opções do Gráfico</h3>
+    <label for="toggleLiveSafetyLines">
+        <input type="checkbox" id="toggleLiveSafetyLines" aria-label="Toggle de linhas de segurança">
+        Exibir Linhas de Segurança no Gráfico Ao Vivo
+    </label>
+    <p>Marque esta opção para incluir linhas de segurança no gráfico ao vivo. As linhas representam:</p>
+    <ul>
+        <li><strong>Limite Inferior de Segurança (Azul):</strong> O nível mínimo aceitável.</li>
+        <li><strong>Limite Superior de Segurança (Verde):</strong> O nível máximo aceitável.</li>
+        <li><strong>Limite de Transbordamento (Vermelho):</strong> Nível de alerta de transbordamento.</li>
+    </ul>
+</section>
+
+<!-- Tabela de Leituras ao Vivo -->
+<section>
+    <h2>Tabela de Leituras ao Vivo / de um Minuto Específico</h2>
+    <p>Veja os dados mais recentes ou de um minuto específico em tempo real na tabela abaixo:</p>
+    <table id="liveTable">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Valor (m³/s)</th>
+            <th>Data</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- As leituras de vazao serão preenchidas aqui -->
+        </tbody>
+    </table>
+</section>
+
+<!-- Gráfico Secundário de Altura ao Vivo -->
+<section>
+    <h2>Gráfico ao Vivo da Altura ou Minuto Específico</h2>
+    <canvas id="heightLiveChart"></canvas>
+    <p>Este gráfico mostra a altura em tempo real com dados atualizados a cada minuto.</p>
+</section>
+
+<!-- Filtro por minuto e tabela de leituras de altura ao vivo do gráfico ao vivo -->
+<section>
+    <h2>Filtrar por Minuto Específico</h2>
+    <p>Selecione um minuto específico para visualizar os dados correspondentes. O gráfico e a tabela serão atualizados com os dados desse minuto.</p>
+    <input type="datetime-local" id="specificMinuteHeightInput" aria-label="Selecionar minuto específico">
+    <button id="specificMinuteHeightBtn" aria-label="Aplicar filtro de minuto">Aplicar Filtro de Minuto</button>
+    <button id="removeHeightMinuteFilter" aria-label="Remover filtro de minuto">Remover Filtro de Minuto</button>
+</section>
+
+<!-- Opção para exibir linhas de segurança -->
+<section>
+    <h3>Opções do Gráfico</h3>
+    <label for="toggleHeightLiveSafetyLines">
+        <input type="checkbox" id="toggleHeightLiveSafetyLines" aria-label="Toggle de linhas de segurança">
+        Exibir Linhas de Segurança no Gráfico Ao Vivo
+    </label>
+    <p>Marque esta opção para incluir linhas de segurança no gráfico ao vivo. As linhas representam:</p>
+    <ul>
+        <li><strong>Limite Inferior de Segurança (Azul):</strong> O nível mínimo aceitável.</li>
+        <li><strong>Limite Superior de Segurança (Verde):</strong> O nível máximo aceitável.</li>
+        <li><strong>Limite de Transbordamento (Vermelho):</strong> Nível de alerta de transbordamento.</li>
+    </ul>
+</section>
+
+<!-- Tabela de Leituras ao Vivo -->
+<section>
+    <h2>Tabela de Leituras ao Vivo / de um Minuto Específico</h2>
+    <p>Veja os dados mais recentes ou de um minuto específico em tempo real na tabela abaixo:</p>
+    <table id="heightLiveTable">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Altura (m)</th>
+            <th>Data</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- As leituras de altura serão preenchidas aqui -->
+        </tbody>
+    </table>
+</section>
+
+<!-- Download e envio de dados -->
+<section>
+    <h2>Baixar Dados de Leitura Diária</h2>
+    <label for="downloadDate">Selecione a Data:</label>
+    <input type="date" id="downloadDate">
+    <button id="downloadButton">Baixar Dados</button>
+</section>
+
+<section>
+    <h2>Enviar Nova Leitura de Vazão</h2>
+    <label for="vazaoInput">Vazão (m³/s):</label>
+    <input type="number" id="vazaoInput" step="0.01" placeholder="Ex: 12.34">
+    <label for="dataInput">Data:</label>
+    <input type="date" id="dataInput">
+    <label for="horaInput">Hora (HH:MM:SS):</label>
+    <input type="text" id="horaInput" placeholder="Ex: 12:30:45" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]">
+    <button id="sendButton">Enviar</button>
+</section>
+
+</body>
+</html>

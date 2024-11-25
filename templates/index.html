@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Monitoramento</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    <script src="{{ url_for('static', filename='chartPrincipal.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='chartLive.js') }}" defer></script>
+</head>
+<body>
+<h1>Sistema de Monitoramento</h1>
+
+<!-- Gráfico Principal -->
+<section>
+    <h2>Gráfico Principal</h2>
+    <p>Exibe os dados de vazão ou altura com downsampling para melhorar o desempenho.</p>
+    <p><strong>Observação:</strong> Cada ponto no gráfico representa uma média dos dados coletados, conforme o filtro selecionado:</p>
+    <ul>
+        <li><strong>Dia:</strong> Média a cada hora.</li>
+        <li><strong>Semana:</strong> Média a cada 12 horas.</li>
+        <li><strong>Mês:</strong> Média por dia.</li>
+    </ul>
+    <button id="switchToVazao" type="button">Exibir Vazão</button>
+    <button id="switchToHeight" type="button">Exibir Altura</button>
+    <canvas id="leiturasChart"></canvas>
+</section>
+
+<!-- Filtros -->
+<section>
+    <h3>Filtrar Dados</h3>
+    <p>Escolha um tipo de filtro para visualizar os dados de vazão ou altura com base no período desejado:</p>
+    <form id="filterForm">
+        <label for="filter">Escolha o Período:</label>
+        <select id="filter" name="filter" required>
+            <option value="dia">Dia</option>
+            <option value="semana">Semana</option>
+            <option value="mes">Mês</option>
+        </select>
+        <div>
+            <label for="date">Data:</label>
+            <input type="date" id="date" name="date">
+        </div>
+        <div>
+            <label for="startDate">Data de Início:</label>
+            <input type="date" id="startDate" name="start_date">
+            <label for="endDate">Data de Fim:</label>
+            <input type="date" id="endDate" name="end_date">
+        </div>
+        <div>
+            <label for="month">Mês:</label>
+            <input type="number" id="month" name="month" min="1" max="12">
+            <label for="year">Ano:</label>
+            <input type="number" id="year" name="year" min="2000" max="2100">
+        </div>
+        <div>
+            <input type="checkbox" id="toggleSafetyLines" name="safety_lines">
+            <label for="toggleSafetyLines">Exibir Linhas de Segurança no Gráfico</label>
+            <ul>
+                <li><strong>Limite Inferior de Segurança (Azul):</strong> O nível mínimo aceitável.</li>
+                <li><strong>Limite Superior de Segurança (Verde):</strong> O nível máximo aceitável.</li>
+                <li><strong>Limite Crítico (Vermelho):</strong> Indica valores fora dos padrões esperados.</li>
+            </ul>
+        </div>
+        <button id="applyFilter" type="button">Aplicar Filtro</button>
+        <button id="removeFilter" type="button">Remover Filtro</button>
+    </form>
+</section>
+
+<!-- Gráfico Ao Vivo -->
+<section>
+    <h2>Gráfico Ao Vivo</h2>
+    <p>Mostra dados em tempo real. Você pode alternar entre os gráficos de vazão e altura.</p>
+    <div>
+        <button id="liveSwitchToVazao" type="button">Exibir Vazão</button>
+        <button id="liveSwitchToHeight" type="button">Exibir Altura</button>
+    </div>
+    <form id="minuteFilterForm">
+        <label for="specificMinuteInput">Selecionar Minuto Específico:</label>
+        <input type="datetime-local" id="specificMinuteInput" name="minute">
+        <button type="button" id="applyMinuteFilter">Aplicar Filtro de Minuto</button>
+        <button type="button" id="removeMinuteFilter">Remover Filtro de Minuto</button>
+    </form>
+    <canvas id="liveChart"></canvas>
+</section>
+
+<!-- Opção para Exibir Linhas de Segurança do Gráfico Ao Vivo -->
+<section>
+    <h3>Opções do Gráfico ao Vivo</h3>
+    <label for="toggleLiveSafetyLines">
+        <input type="checkbox" id="toggleLiveSafetyLines" name="safety_lines">
+        Exibir Linhas de Segurança no Gráfico Ao Vivo
+    </label>
+    <p>As linhas de segurança ajudam a monitorar os limites dos dados exibidos no gráfico ao vivo:</p>
+    <ul>
+        <li><strong>Limite Inferior de Segurança (Azul):</strong> O nível mínimo aceitável.</li>
+        <li><strong>Limite Superior de Segurança (Verde):</strong> O nível máximo aceitável.</li>
+        <li><strong>Limite Crítico (Vermelho):</strong> Indica valores fora dos padrões esperados.</li>
+    </ul>
+</section>
+
+<!-- Tabela de Leituras -->
+<section>
+    <h2>Tabela de Leituras</h2>
+    <p>Veja os dados mais recentes na tabela abaixo:</p>
+    <table id="liveTable">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Valor</th>
+            <th>Data</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Dados serão preenchidos dinamicamente -->
+        </tbody>
+    </table>
+</section>
+
+<!-- Download de Dados -->
+<section>
+    <h2>Baixar Dados</h2>
+    <form method="get" action="/download">
+        <labela for="downloadDate">Selecione a Data:</labela>
+        <input type="date" id="downloadDate" name="date" required>
+        <button type="submit">Baixar Dados</button>
+    </form>
+</section>
+
+<!-- Enviar Dados -->
+<section>
+    <h2>Enviar Dados</h2>
+    <form method="post" action="/receive">
+        <form method="post" action="/receive">
+            <label for="dataHoraInput">Data e Hora:</label>
+            <input type="datetime-local" id="dataHoraInput" name="data_hora" required>
+
+            <label for="vazaoInput">Vazão (m³/s):</label>
+            <input type="number" id="vazaoInput" name="vazao" step="0.01" required>
+
+            <label for="alturaInput">Altura (m):</label>
+            <input type="number" id="alturaInput" name="altura" step="0.01" required>
+
+            <button type="submit">Enviar Dados</button>
+        </form>
+
+    </form>
+</section>
+
+</body>
+</html>

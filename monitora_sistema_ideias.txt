@@ -1,0 +1,39 @@
+Tem um sensor de nível de água, ele vai ler a variação e vai fazer um cálculo de vazão de água usando a calha de parschall
+
+
+O K N fornecidos pelo usuário
+
+Vou receber Q -> vazão em m^3/s
+
+---
+Para o MVP (Produto Mínimo Viável) do gráfico de vazão de água, os elementos mais importantes e essenciais a serem incluídos são:
+
+Gráfico de Linha:
+
+Eixo X: Datas (ou horas) das leituras de vazão.
+Eixo Y: Vazão em m³/s.
+Curva: Linha conectando os pontos de leitura.
+Dados de Leitura:
+
+Os valores de vazão devem ser recuperados e exibidos no gráfico.
+Média Móvel (opcional, mas recomendado):
+
+Uma linha de média móvel pode ajudar a suavizar as flutuações e facilitar a visualização das tendências ao longo do tempo.
+Alertas/Marcos:
+
+Linhas horizontais que indicam níveis críticos, como limites de segurança ou de transbordamento, para que os usuários possam identificar rapidamente quando a vazão ultrapassa esses limites.
+
+--- Plus
+A cada 5 Segundos chega uma leitura de vazão
+
+12 leituras de vazao por minuto
+
+2 gráficos
+
+o primeiro gráfico usa resampling para a vasão de água com média móvel e possui filtro para dia, semana e mês, o filtro de semana permite o selecionar de um dia tal para um dia tal, o gráfico terá linhas de segurança se necessário. 
+
+o Segundo gráfico vai automaticamente mostrar ao vivo os dados do ultimo minutos(12 dados, com média móvel tbm, e linha de segurança) e embaixo dela vai ter uma tabela, que mostra também os últimos 12 DADOS que também serao atualizados automaticamente 
+No Segundo gráfico é bom ter uma opção para selecionar o minuto de uma data e hora que pode ser definida, esse minuto será mostrado ir substituir o gráfico e a tabela, quando o usuário tirar o filtro, o gráfico retornará para os dados autómaticos do ultimo minuto.
+
+
+1 botão para baixar um arquivo em panilha, com os dados de leitura de um dia específico que pode ser definido

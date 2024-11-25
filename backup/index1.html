@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Monitoramento de Vazão</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    <script src="{{ url_for('static', filename='chartPrincipal.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='chartLiveVazao.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='sendData.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='downloadData.js') }}" defer></script>
+</head>
+<body>
+<h2>Sistema de Monitoramento de Vazão</h2>
+
+<!-- Gráfico 1 principal com sampling dos dados de vazão -->
+<div>
+    <h2>Gráfico de Vazão com downsampling</h2>
+    <canvas id="leiturasChart"></canvas>
+</div>
+
+<!-- Gráfico Principal de Vazão com Downsampling -->
+<div>
+    <h2>Gráfico de Vazão</h2>
+    <p>Este gráfico exibe os dados de vazão com downsampling para melhorar a visualização e o desempenho. Selecione um filtro abaixo para ajustar o período dos dados apresentados.</p>
+    <canvas id="leiturasChart"></canvas>
+</div>
+
+<!-- Seção de Filtro de Dados -->
+<div class="filter-container">
+    <h3>Filtrar Dados</h3>
+    <p>Escolha um tipo de filtro para visualizar os dados de vazão com base no período desejado. As opções disponíveis são: Dia, Semana ou Mês.</p>
+
+    <label for="filter">Escolha o Período:</label>
+    <select id="filter">
+        <option value="dia">Dia (1 ponto por hora)</option>
+        <option value="semana">Semana (1 ponto a cada 12 horas)</option>
+        <option value="mes">Mês (1 ponto por dia)</option>
+    </select>
+
+    <!-- Filtro específico por dia -->
+    <div id="filterDia" class="filter-group">
+        <label for="date">Selecione a Data:</label>
+        <input type="date" id="date">
+    </div>
+
+    <!-- Filtro específico por semana -->
+    <div id="filterSemana" class="filter-group">
+        <label for="startDate">Data de Início:</label>
+        <input type="date" id="startDate">
+        <label for="endDate">Data de Fim:</label>
+        <input type="date" id="endDate">
+    </div>
+
+    <!-- Filtro específico por mês -->
+    <div id="filterMes" class="filter-group">
+        <label for="month">Mês:</label>
+        <input type="number" id="month" min="1" max="12" placeholder="1-12">
+        <label for="year">Ano:</label>
+        <input type="number" id="year" min="2000" max="2100" placeholder="ex: 2024">
+    </div>
+
+    <div>
+        <input type="checkbox" id="toggleSafetyLines">
+        <label for="toggleSafetyLines">Exibir Linhas de Segurança no Gráfico</label>
+    </div>
+
+    <button id="applyFilter">Aplicar Filtro</button>
+    <button id="removeFilter">Remover Filtro e Voltar ao Padrão</button>
+</div>
+
+
+<div>
+    <h2>Gráfico ao Vivo</h2>
+    <canvas id="liveChart"></canvas>
+</div>
+
+<!-- Filtro por minuto e tabela de leituras ao vivo -->
+<div>
+    <h2>Filtrar por Minuto Específico</h2>
+    <input type="datetime-local" id="specificMinuteInput">
+    <button id="specificMinuteBtn">Aplicar Filtro de Minuto</button>
+    <button id="removeMinuteFilter">Remover Filtro de Minuto</button>
+</div>
+<div>
+    <label for="toggleLiveSafetyLines">Exibir Linhas de Segurança no Gráfico Ao Vivo:</label>
+    <input type="checkbox" id="toggleLiveSafetyLines">
+</div>
+<div>
+    <h2>Tabela de Leituras ao Vivo</h2>
+    <table id="liveTable">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Valor (m³/s)</th>
+            <th>Data</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<!-- Download e envio de dados -->
+<div>
+    <h2>Baixar Dados de Leitura</h2>
+    <label for="downloadDate">Selecione a Data:</label>
+    <input type="date" id="downloadDate">
+    <button id="downloadButton">Baixar Dados</button>
+</div>
+<div>
+    <h2>Enviar Nova Leitura</h2>
+    <label for="vazaoInput">Vazão (m³/s):</label>
+    <input type="number" id="vazaoInput" step="0.01" placeholder="Ex: 12.34">
+    <label for="dataInput">Data:</label>
+    <input type="date" id="dataInput">
+    <label for="horaInput">Hora:</label>
+    <input type="time" id="horaInput">
+    <button id="sendButton">Enviar</button>
+</div>
+
+</body>
+</html>

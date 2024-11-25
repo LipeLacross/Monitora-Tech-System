@@ -1,0 +1,12 @@
+oi, então, hj a gente acabou que fomos embora perto de 11h da manhã, 
+a integração com a LoRa não deu certo como esperado, mas continuamos com testes com o sensor, 
+eu e Gabriel estamos tentando achar um ajuste para a medição de altura da coluna d'água, 
+sensor ultrassonico acabou não dando certo, aparentemente ele está com problema, e não funcionou de forma alguma,
+mas o sensor de nivel sim, provavelmente vamos continuar com ele, 
+e pedimos pra jorge para refazer esses testes funcionais dia 13
+
+
+
+
+C:\Users\jorda\AppData\Local\Arduino15\packages\arduino\tools\avrdude\6.3.0-arduino17/bin/avrdude
+-C"C:\Users\jorda\AppData\Local\Arduino15\packages\arduino\tools\avrdude\6.3.0-arduino17/etc/avrdude.conf" -v -V -patmega328p -carduino "-PCOM7" -b115200 -D "-Uflash:w:"$(ProjectDir)Debug\$(TargetName).hex":i"
